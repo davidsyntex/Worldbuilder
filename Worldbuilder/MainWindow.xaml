@@ -1,0 +1,11 @@
+﻿<Window x:Class="Worldbuilder.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Worldbuilder by davidsyntex" Height="468" Width="477">
+    <Grid>
+        <TextBox x:Name="textboxOutput" Margin="10,50,10,10" TextWrapping="Wrap" Text="TextBox" VerticalScrollBarVisibility="Auto" IsReadOnly="True"/>
+        <Button x:Name="buttonCreateWorld" Content="Create world" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Click="ButtonCreateWorldClicked"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="384,10,0,0" VerticalAlignment="Top" Width="75"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="304,10,0,0" VerticalAlignment="Top" Width="75"/>
+    </Grid>
+</Window>
