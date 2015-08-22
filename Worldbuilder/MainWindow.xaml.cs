@@ -1,94 +1,125 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Windows.Media.TextFormatting;
 
 namespace Worldbuilder
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    ///     Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
-        Random _random;
-        Character _character = new Character();
+        private List<Character> _listOfCharacters;
+        private readonly Random _random;
 
         public MainWindow()
         {
             InitializeComponent();
+            textboxOutput.Clear();
             _random = new Random();
         }
 
         private void ButtonCreateWorldClicked(object sender, RoutedEventArgs e)
         {
-            textboxOutput.Text = _character.PrintName() + Environment.NewLine;
+            PopulateCharacterList();
             RunWorld();
         }
 
-        async void foo()
+        private void PopulateCharacterList()
         {
-            // something
-            await Task.Delay(50);
+            _listOfCharacters = new List<Character>();
+
+            for (var i = 0; i < 20; i++)
+            {
+                _listOfCharacters.Add(new Character(_random.Next(1, 30), _random.Next(1, 4), _random.Next(0, 99),
+                    "Hasse" + (i+1)));
+                //_listOfCharacters.Add(new Character(_random.Next(1, 30), _random.Next(1, 4), _random.Next(0, 99), "Hasse" + i));
+            }
+
+            foreach (var character in _listOfCharacters)
+            {
+                textboxOutput.Text += character.PrintName() + Environment.NewLine;
+            }
         }
 
         private void RunWorld()
         {
-            var isAlive = true;
-            var år = 1;
+            textboxOutput.Clear();
+            int currentYear = 1;
+            int currentSeason = 1;
+            int currentDay = 0;
             var sb = new StringBuilder();
 
             sb.Append("ÅR.SäsongDag" + Environment.NewLine);
 
-            while (isAlive)
+            while (IsHalfOfCharactersAlive() || currentYear == 400)
             {
-                for (var säsong = 1; säsong <= 4; säsong++)
+                for (currentSeason = 1; currentSeason <= 4; currentSeason++)
                 {
-                    for (var dag = 0; dag <= 99; dag++)
+                    for (currentDay = 0; currentDay <= 99; currentDay++)
                     {
-                        sb.Append("en ny dag har börjat: ");
-                        sb.Append(år.ToString() + "." + säsong.ToString() + PaddedZeroes(dag, säsong) + Environment.NewLine);
-                        
-
-                        if (!(_random.NextDouble() <= 0.0025))
+                        foreach (
+                            var character in
+                                _listOfCharacters.Where(character => character.isAlive)
+                                    .Where(character => character.IsBorn(currentYear, currentSeason, currentDay)))
                         {
-                            continue;
-                        }
+                            if (_random.NextDouble() <= 0.000075)
+                            {
+                                character.Kill(currentYear, currentSeason, currentDay);
 
-                        sb.Append(_character.PrintName() + " has died!" + Environment.NewLine + Environment.NewLine);
-                        isAlive = false;
-                        break;
-                    }
-                    if (!isAlive)
-                    {
-                        break;
+                                //sb.Append(character.PrintName() + " has died on " + FormatDate(character.DiedYear, character.DiedSeason, character.DiedDay) + Environment.NewLine);
+                            }
+                            if (character.Age(currentYear) == 100)
+                            {
+                                character.Kill(currentYear, currentSeason, currentDay);
+                            }
+                        }
                     }
                 }
-                år++;
+                currentYear++;
+            }
+            sb.Append("Simulation completed on: " + FormatDate(currentYear, currentSeason, currentDay-1) + Environment.NewLine);
+
+            foreach (var character in _listOfCharacters.OrderBy(character => character.isAlive))
+            {
+                if (character.isAlive)
+                {
+                    sb.Append(character.PrintName() + " is alive and well, hin is " + character.Age(currentYear) +
+                              " years old" + Environment.NewLine);
+                }
+                else
+                {
+                    sb.Append(character.PrintName() + " died on " +
+                              FormatDate(character.DiedYear, character.DiedSeason, character.DiedDay) + " he became " +
+                              character.Age(character.DiedYear) + " years old" + Environment.NewLine);
+                }
             }
 
             textboxOutput.Text += sb.ToString();
         }
 
-        private string PaddedZeroes(int dag, int säsong)
+        private bool IsHalfOfCharactersAlive()
         {
-            var paddedDag = dag.ToString();
-            if (dag < 10)
+            var numberOfAlive = _listOfCharacters.Count(character => character.isAlive);
+            return numberOfAlive >= _listOfCharacters.Count / 2;
+        }
+
+        private static string FormatDate(int year, int season, int day)
+        {
+            return year + "." + season + PaddedZeroes(day);
+        }
+
+        private static string PaddedZeroes(int day)
+        {
+            var paddedDag = day.ToString();
+            if (day < 10)
             {
                 paddedDag = paddedDag.Insert(0, "0");
             }
-            
+
             return paddedDag;
         }
     }
